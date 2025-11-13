@@ -47,6 +47,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: test
+    permissions:
+      contents: read
+      packages: write
     steps:
     - uses: actions/checkout@v4
     - name: Download model
@@ -54,9 +57,16 @@ jobs:
       with:
         name: model
         path: models/
-    - name: Build Docker image
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and push Docker image
       run: |
-        docker build -t water-predictor .
+        docker build -t ghcr.io/aka-akhil1/water-predictor:latest .
+        docker push ghcr.io/aka-akhil1/water-predictor:latest
 
   deploy:
     runs-on: ubuntu-latest
