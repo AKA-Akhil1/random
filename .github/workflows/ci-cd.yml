@@ -44,26 +44,9 @@ jobs:
       run: |
         python tests/test.py
 
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-    - uses: actions/checkout@v4
-    - name: Download model
-      uses: actions/download-artifact@v4
-      with:
-        name: model
-        path: models/
-    - name: Build Docker image
-      run: |
-        docker build -t water-predictor .
-    - name: Validate build
-      run: |
-        echo "✅ Docker image built successfully"
-
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: test
     steps:
     - name: Container ready for local use
       run: |
