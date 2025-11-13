@@ -16,20 +16,40 @@ COPY src/ ./src/
 # Copy trained model into container
 COPY models/ ./models/
 
-# Copy HTML templates into container
-COPY templates/ ./templates/
+# Create a test script that uses the model with sample inputs
+RUN echo 'import pickle\n\
+import numpy as np\n\
+\n\
+# Load the trained model\n\
+with open("models/model.pkl", "rb") as f:\n\
+    model = pickle.load(f)\n\
+\n\
+# Sample test inputs (Tmax, Tmin, Rainfall)\n\
+test_cases = [\n\
+    [35.2, 18.5, 12.3],\n\
+    [28.7, 15.1, 45.6],\n\
+    [32.1, 20.8, 8.9],\n\
+    [25.4, 12.3, 67.2]\n\
+]\n\
+\n\
+print("=== Water Discharge Prediction Test ===")\n\
+print("Model loaded successfully!")\n\
+print()\n\
+\n\
+for i, inputs in enumerate(test_cases, 1):\n\
+    tmax, tmin, rainfall = inputs\n\
+    features = np.array([inputs])\n\
+    prediction = model.predict(features)[0]\n\
+    \n\
+    print(f"Test Case {i}:")\n\
+    print(f"  Inputs: Tmax={tmax}°C, Tmin={tmin}°C, Rainfall={rainfall}mm")\n\
+    print(f"  Predicted Discharge: {prediction:.2f} units")\n\
+    print()\n\
+\n\
+print("✅ All predictions completed successfully!")' > test_model.py
 
-# Expose port 5000 (tells Docker this container listens on port 5000)
-EXPOSE 5000
+# Command to run the test script when container starts
+CMD ["python", "test_model.py"]
 
-# Set environment variable to tell Flask to run on all interfaces
-ENV FLASK_RUN_HOST=0.0.0.0
-
-# Command to run when container starts (starts the Flask app)
-CMD ["python", "src/app.py"]
-
-## Build Docker image (. means current directory)
-#docker build -t water-predictor .
-
-# Run container and map port 5000 from container to host port 5000
-#docker run -p 5000:5000 water-predictor
+# Build test image: docker build -f Dockerfile.test -t water-predictor-test .
+# Run test container: docker run water-predictor-test
