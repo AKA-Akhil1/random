@@ -54,7 +54,7 @@ jobs:
     - name: Build and push Docker image
       run: |
         docker build -t ghcr.io/aka-akhil1/water-predictor:latest .
-        docker push ghcr.io/aka-akhil1/water-predictor:latest
+        docker push ghcr.io/aka-akhil1/water-predictor:latest 
 
   deploy:
     runs-on: ubuntu-latest
