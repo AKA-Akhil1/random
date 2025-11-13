@@ -35,13 +35,18 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
+    - name: Download model
+      uses: actions/download-artifact@v4
+      with:
+        name: model
+        path: models/
     - name: Run tests
       run: |
         python tests/test.py
 
   build:
     runs-on: ubuntu-latest
-    needs: train
+    needs: test
     steps:
     - uses: actions/checkout@v4
     - name: Download model
@@ -49,14 +54,12 @@ jobs:
       with:
         name: model
         path: models/
-    - name: Build Docker image
-      run: |
-        docker build -t water-predictor:latest .
-        echo "✅ Docker image built successfully" 
-    - name: Build and test Docker image
+    - name: Build Docker images
       run: |
         docker build -t water-predictor .
         docker build -f Dockerfile.test -t water-predictor-test .
+    - name: Test containerized model
+      run: |
         docker run water-predictor-test
 
   deploy:
